@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using Image = SixLabors.ImageSharp.Image;
 
 namespace BPSRCapture
@@ -93,7 +92,7 @@ namespace BPSRCapture
         {
             try
             {
-                string ext = Regex.Match(filePath, "\\..+$").Value;
+                string ext = Path.GetExtension(filePath);
 
                 if (ext != null)
                 {
