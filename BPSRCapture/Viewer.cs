@@ -6,6 +6,7 @@ using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -90,34 +91,43 @@ namespace BPSRCapture
 
         static void AddListWithThumbs(string filePath, ConcurrentBag<ThumbnailInfo> info)
         {
-            string ext = Regex.Match(filePath, "\\..+$").Value;
+            try
+            {
+                string ext = Regex.Match(filePath, "\\..+$").Value;
 
-            if (ext != null)
-            {
-                ext = "*" + ext.ToLower();
-            }
-            else
-            {
-                return;
-            }
-            if (!filterList.Contains(ext)) return;
+                if (ext != null)
+                {
+                    ext = "*" + ext.ToLower();
+                }
+                else
+                {
+                    return;
+                }
+                if (!filterList.Contains(ext)) return;
 
-            using (Image loadImg = Image.Load(filePath))
-            using (MemoryStream ms = new MemoryStream())
+                using (Image loadImg = Image.Load(filePath))
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    bool isPortrait = loadImg.Height > loadImg.Width;
+                    var (width, height) = CalculateFitSize(loadImg.Width, loadImg.Height);
+                    loadImg.Mutate(x => x.Resize(width, height));
+                    var hoge = loadImg.PixelType;
+                    loadImg.Save(ms, new PngEncoder());
+                    ms.Position = 0;
+                    using Bitmap thumbsBmp = new Bitmap(ms);
+                    using Bitmap newBmp = new Bitmap(thumbsWidth, thumbsHeight);
+                    using Graphics g = Graphics.FromImage(newBmp);
+                    g.FillRectangle(Brushes.White, new System.Drawing.Rectangle(0, 0, thumbsWidth, thumbsHeight));
+                    g.DrawImage(thumbsBmp, (float)(thumbsWidth - thumbsBmp.Width) / 2f, (float)(thumbsHeight - thumbsBmp.Height) / 2f);
+                    g.Dispose();
+                    info.Add(new ThumbnailInfo(filePath, new Bitmap(newBmp)));
+                }
+            } catch (UnknownImageFormatException)
             {
-                bool isPortrait = loadImg.Height > loadImg.Width;
-                var (width, height) = CalculateFitSize(loadImg.Width, loadImg.Height);
-                loadImg.Mutate(x => x.Resize(width, height));
-                var hoge = loadImg.PixelType;
-                loadImg.Save(ms, new PngEncoder());
-                ms.Position = 0;
-                using Bitmap thumbsBmp = new Bitmap(ms);
-                using Bitmap newBmp = new Bitmap(thumbsWidth, thumbsHeight);
-                using Graphics g = Graphics.FromImage(newBmp);
-                g.FillRectangle(Brushes.White, new System.Drawing.Rectangle(0, 0, thumbsWidth, thumbsHeight));
-                g.DrawImage(thumbsBmp, (float)(thumbsWidth - thumbsBmp.Width) / 2f, (float)(thumbsHeight - thumbsBmp.Height) / 2f);
-                g.Dispose();
-                info.Add(new ThumbnailInfo(filePath, new Bitmap(newBmp)));
+                Debug.WriteLine("Unsupported Format");
+            } catch (Exception)
+            {
+                Debug.WriteLine("その他のエラー");
             }
         }
 
