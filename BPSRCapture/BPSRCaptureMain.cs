@@ -2,9 +2,11 @@ using NAudio.Wave;
 using SharpDX;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
+using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Webp;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Buffer = System.Buffer;
 using Device = SharpDX.Direct3D11.Device;
 using FileType = BPSRCapture.BPSRCaptureConfigManager.FileType;
@@ -31,6 +33,9 @@ namespace BPSRCapture
         // 効果音用オブジェクト
         private readonly WaveFileReader _waveReader;
         private readonly WaveOutEvent _waveOut = new WaveOutEvent();
+
+        // Viewerウィンドウ
+        private Viewer _viewer;
 
         public BPSRCaptureMain()
         {
@@ -98,6 +103,10 @@ namespace BPSRCapture
             memoryStream.Position = 0;
             _waveReader = new WaveFileReader(memoryStream);
             _waveOut.Init(_waveReader);
+
+            // ビューワーウィンドウサイズデフォルト値設定
+            if (configManager.conf.viewerWidth <= 0) configManager.conf.viewerWidth = 800;
+            if (configManager.conf.viewerHeight <= 0) configManager.conf.viewerHeight = 600;
         }
 
         /**
@@ -175,31 +184,35 @@ namespace BPSRCapture
             int milliseconds = (int)((ticks / TimeSpan.TicksPerMillisecond) % 1000);
             int microseconds = (int)((ticks % TimeSpan.TicksPerMillisecond) * 100);
             string fileName = textBox_savePath.Text + Path.DirectorySeparatorChar + $"{now:yyyyMMddHHmmss}_{milliseconds:D3}_{microseconds:D6}";
-            using (Bitmap bmp = CaptureWindowWithDXGI(windowName, processName, ((AdapterItem)comboBox_adapter.SelectedValue!).ID))
+
+            switch ((FileType)comboBox_filetype.SelectedIndex)
             {
-                if (bmp != null)
-                {
-                    PlaySound();
-                    switch ((FileType)comboBox_filetype.SelectedIndex)
+                case FileType.PNG:
+                    using (Bitmap bmp = CaptureWindowWithDXGI(windowName, processName, ((AdapterItem)comboBox_adapter.SelectedValue!).ID))
                     {
-                        case FileType.PNG:
-                            bmp.Save(fileName + ".png", ImageFormat.Png);
-                            break;
-                        case FileType.JPEG:
-                            bmp.Save(fileName + ".jpg", ImageFormat.Jpeg);
-                            break;
-                        case FileType.WEBP_LOSSY:
-                            SaveAsWebp(fileName + ".webp", bmp, false, 100);
-                            break;
-                        case FileType.WEBP_LOSSLESS:
-                            SaveAsWebp(fileName + ".webp", bmp, true, 100);
-                            break;
-                        case FileType.BITMAP:
-                            bmp.Save(fileName + ".bmp", ImageFormat.Bmp);
-                            break;
+                        if (bmp != null) bmp.Save(fileName + ".png", ImageFormat.Png);
                     }
-                }
+                    break;
+                case FileType.JPEG:
+                    using (Bitmap bmp = CaptureWindowWithDXGI(windowName, processName, ((AdapterItem)comboBox_adapter.SelectedValue!).ID))
+                    {
+                        if (bmp != null) bmp.Save(fileName + ".jpg", ImageFormat.Jpeg);
+                    }
+                    break;
+                case FileType.WEBP_LOSSY:
+                    SaveAsWebpThread(((AdapterItem)comboBox_adapter.SelectedValue!).ID, fileName + ".webp", false, 100);
+                    break;
+                case FileType.WEBP_LOSSLESS:
+                    SaveAsWebpThread(((AdapterItem)comboBox_adapter.SelectedValue!).ID, fileName + ".webp", true, 100);
+                    break;
+                case FileType.BITMAP:
+                    using (Bitmap bmp = CaptureWindowWithDXGI(windowName, processName, ((AdapterItem)comboBox_adapter.SelectedValue!).ID))
+                    {
+                        if (bmp != null) bmp.Save(fileName + ".bmp", ImageFormat.Bmp);
+                    }
+                    break;
             }
+            PlaySound();
         }
 
         /**
@@ -227,7 +240,21 @@ namespace BPSRCapture
             }
         }
 
-        public static void SaveAsWebp(string filename, Bitmap bmp, bool isLossless, int quality = -1)
+        private void SaveAsWebpThread(int adapterId, string filename, bool isLossless, int quality = -1)
+        {
+            Task.Run(() =>
+            {
+                SaveAsWebp(adapterId, filename, isLossless, quality);
+            });
+        }
+
+        public static void SaveAsWebp(int adapterId, string filename, bool isLossless, int quality = -1)
+        {
+            using Bitmap bmp = CaptureWindowWithDXGI(windowName, processName, adapterId);
+            SaveAsWebp(bmp, filename, isLossless, quality);
+        }
+
+        public static void SaveAsWebp(Bitmap bmp, string filename, bool isLossless, int quality = -1)
         {
             using var ms = new MemoryStream();
             bmp.Save(ms, ImageFormat.Png);
@@ -240,8 +267,11 @@ namespace BPSRCapture
                 ? new WebpEncoder { FileFormat = WebpFileFormatType.Lossless, Quality = quality }
                 : new WebpEncoder { FileFormat = WebpFileFormatType.Lossy, Quality = quality };
 
-            using var fs = new FileStream(filename, FileMode.Create, FileAccess.Write);
+            string tempPath = Path.GetTempFileName();
+            using var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write);
             image.Save(fs, encoder);
+            fs.Close();
+            File.Move(tempPath, filename);
         }
 
         public static Bitmap CaptureWindowWithDXGI(string titleContains, string processName, int devideId)
@@ -528,6 +558,29 @@ namespace BPSRCapture
         private void volumeSlider_ValueChanged(object sender, ValueChangeEventArgs e)
         {
             configManager.conf.Volume = e.NewValue;
+        }
+
+        private void openViewButton_Click(object sender, EventArgs e)
+        {
+            if (_viewer != null && !_viewer.IsDisposed)
+            {
+                _viewer.Activate();
+            } else
+            {
+                _viewer = new Viewer(textBox_savePath.Text, configManager);
+                _viewer.FormClosing += ViewerClosing;
+                _viewer.Width = configManager.conf.viewerWidth;
+                _viewer.Height = configManager.conf.viewerHeight;
+                _viewer.Show();
+            }
+        }
+
+        private void ViewerClosing(Object? sender, FormClosingEventArgs e)
+        {
+            configManager.conf.RecentCnt = (int)_viewer.recentLimit.Value;
+            configManager.conf.RecentFlg = _viewer.recentChk.Checked;
+            configManager.conf.viewerWidth = _viewer.Size.Width;
+            configManager.conf.viewerHeight = _viewer.Size.Height;
         }
     }
 

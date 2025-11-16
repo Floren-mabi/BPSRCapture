@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             tableLayoutPanel1 = new TableLayoutPanel();
+            openViewButton = new Button();
             textBox_savePath = new TextBox();
             button_selectPath = new Button();
             button_openFolder = new Button();
@@ -49,7 +50,7 @@
             // 
             // tableLayoutPanel1
             // 
-            tableLayoutPanel1.ColumnCount = 8;
+            tableLayoutPanel1.ColumnCount = 9;
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200F));
@@ -58,6 +59,8 @@
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 60F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 30F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 30F));
+            tableLayoutPanel1.Controls.Add(openViewButton, 8, 0);
             tableLayoutPanel1.Controls.Add(textBox_savePath, 0, 0);
             tableLayoutPanel1.Controls.Add(button_selectPath, 6, 0);
             tableLayoutPanel1.Controls.Add(button_openFolder, 7, 0);
@@ -75,8 +78,19 @@
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.Size = new Size(784, 61);
+            tableLayoutPanel1.Size = new Size(814, 61);
             tableLayoutPanel1.TabIndex = 0;
+            // 
+            // openViewButton
+            // 
+            openViewButton.Dock = DockStyle.Fill;
+            openViewButton.Image = Properties.Resources.ListViewTable;
+            openViewButton.Location = new Point(787, 3);
+            openViewButton.Name = "openViewButton";
+            openViewButton.Size = new Size(24, 24);
+            openViewButton.TabIndex = 14;
+            openViewButton.UseVisualStyleBackColor = true;
+            openViewButton.Click += openViewButton_Click;
             // 
             // textBox_savePath
             // 
@@ -225,10 +239,10 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(784, 61);
+            ClientSize = new Size(814, 61);
             Controls.Add(tableLayoutPanel1);
-            MaximumSize = new Size(800, 100);
-            MinimumSize = new Size(800, 100);
+            MaximumSize = new Size(830, 100);
+            MinimumSize = new Size(830, 100);
             Name = "BPSRCaptureMain";
             Text = "BPSRきゃぷちゃするやつ";
             FormClosing += BPSRCapture_FormClosing;
@@ -257,5 +271,6 @@
         private Panel panel1;
         private RenderedTrackBar volumeSlider;
         private PictureBox volumeMuteButton;
+        private Button openViewButton;
     }
 }

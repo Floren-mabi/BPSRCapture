@@ -26,6 +26,11 @@
     <NoWarn>CA1416</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <GCLargeObjectHeapCompactionOnUnmap>true</GCLargeObjectHeapCompactionOnUnmap>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />

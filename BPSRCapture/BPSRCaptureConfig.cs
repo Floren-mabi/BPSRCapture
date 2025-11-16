@@ -25,6 +25,14 @@ namespace BPSRCapture
         public int Volume { get; set; }
         // ミュート
         public bool Mute {  get; set; }
+        // 直近n件表示
+        public int RecentCnt { get; set; }
+        // 直近n件表示制限をするかフラグ
+        public bool RecentFlg { get; set; }
+        // ビューワーウィンドウの幅
+        public int viewerWidth { get; set; }
+        // ビューワーウィンドウの高さ
+        public int viewerHeight { get; set; }
 
         public BPSRCaptureConfig()
         {
