@@ -11,7 +11,8 @@
 ※Windows11は動作未検証ですが動くと思います。
 * .NET Framework 9
 # インストール
-ダウンロードしたZipファイルを任意の場所へ解凍すればOKです。
+ダウンロードした BPSRCapture.exe を任意の場所へ配置すればOKです。  
+ダウンロードページ：https://github.com/Floren-mabi/BPSRCapture/releases
 # アンインストール
 下記を削除してください。  
 * \(任意のフォルダ\)\\BPSRCapture.exe  
