@@ -245,8 +245,10 @@
             MinimumSize = new Size(830, 100);
             Name = "BPSRCaptureMain";
             Text = "BPSRきゃぷちゃするやつ";
+            Activated += BPSRCaptureMain_Activated;
             FormClosing += BPSRCapture_FormClosing;
             Shown += BPSRCaptureMain_Shown;
+            LocationChanged += BPSRCaptureMain_LocationChanged;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
             panel1.ResumeLayout(false);

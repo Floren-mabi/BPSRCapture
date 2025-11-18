@@ -1,3 +1,4 @@
+using NAudio.Gui;
 using NAudio.Wave;
 using SharpDX;
 using SharpDX.Direct3D11;
@@ -562,15 +563,20 @@ namespace BPSRCapture
 
         private void openViewButton_Click(object sender, EventArgs e)
         {
+            Point pos = new Point(Location.X, Location.Y + Size.Height);
             if (_viewer != null && !_viewer.IsDisposed)
             {
+                _viewer.Location = pos;
                 _viewer.Activate();
-            } else
+            }
+            else
             {
                 _viewer = new Viewer(textBox_savePath.Text, configManager);
+                _viewer.Owner = this;
                 _viewer.FormClosing += ViewerClosing;
                 _viewer.Width = configManager.conf.viewerWidth;
                 _viewer.Height = configManager.conf.viewerHeight;
+                _viewer.Location = pos;
                 _viewer.Show();
             }
         }
@@ -581,6 +587,23 @@ namespace BPSRCapture
             configManager.conf.RecentFlg = _viewer.recentChk.Checked;
             configManager.conf.viewerWidth = _viewer.Size.Width;
             configManager.conf.viewerHeight = _viewer.Size.Height;
+        }
+
+        private void BPSRCaptureMain_LocationChanged(object sender, EventArgs e)
+        {
+            Point pos = new Point(Location.X, Location.Y + Size.Height);
+            if (_viewer != null && !_viewer.IsDisposed)
+            {
+                _viewer.Location = pos;
+            }
+        }
+
+        private void BPSRCaptureMain_Activated(object sender, EventArgs e)
+        {
+            if (_viewer != null && !_viewer.IsDisposed)
+            {
+                //_viewer.BringToFront();
+            }
         }
     }
 

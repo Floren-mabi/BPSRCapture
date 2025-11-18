@@ -121,10 +121,12 @@ namespace BPSRCapture
                     g.Dispose();
                     info.Add(new ThumbnailInfo(filePath, new Bitmap(newBmp)));
                 }
-            } catch (UnknownImageFormatException)
+            }
+            catch (UnknownImageFormatException)
             {
                 Debug.WriteLine("Unsupported Format");
-            } catch (Exception)
+            }
+            catch (Exception)
             {
                 Debug.WriteLine("その他のエラー");
             }
@@ -276,6 +278,25 @@ namespace BPSRCapture
         {
             _debounceTimer.Stop();
             UpdateList();
+        }
+
+        private void itemListView_DoubleClick(object sender, EventArgs e)
+        {
+            var items = itemListView.SelectedItems;
+            if (items == null || items.Count == 0) return;
+
+            string fileName = items[0].Text;
+            try
+            {
+                System.Diagnostics.Process.Start(
+                    new ProcessStartInfo {
+                        FileName = path + Path.DirectorySeparatorChar + fileName,
+                        UseShellExecute = true
+                    }
+                );
+            } catch {
+                MessageBox.Show("ファイルのオープンに失敗しました", "えらー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

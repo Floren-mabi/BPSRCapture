@@ -68,10 +68,12 @@
             itemListView.ContextMenuStrip = contextMenu;
             itemListView.Dock = DockStyle.Fill;
             itemListView.Location = new Point(3, 3);
+            itemListView.MultiSelect = false;
             itemListView.Name = "itemListView";
             itemListView.Size = new Size(778, 525);
             itemListView.TabIndex = 1;
             itemListView.UseCompatibleStateImageBehavior = false;
+            itemListView.DoubleClick += itemListView_DoubleClick;
             // 
             // contextMenu
             // 
@@ -157,6 +159,7 @@
             Name = "Viewer";
             ShowIcon = false;
             ShowInTaskbar = false;
+            StartPosition = FormStartPosition.Manual;
             Load += Viewer_Load;
             Shown += Viewer_Shown;
             tableLayoutPanel1.ResumeLayout(false);

@@ -6,7 +6,7 @@ $buildFile = "buildnumber.txt"
 $buildNumber = 0
 if (Test-Path $buildFile) { $buildNumber = [int](Get-Content $buildFile) }
 $buildNumber++
-$version = "1.2.$buildNumber.0"
+$version = "1.3.$buildNumber.0"
 
 # メタデータ
 $title = "BPSRCapture"
